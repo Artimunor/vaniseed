@@ -4,18 +4,20 @@
   "description": "A seed phrase generator for the vanity wallets",
   "main": "build/index.js",
   "scripts": {
-    "build": "tsc -w",
+    "build": "tsc",
     "start": "node build/index.js"
   },
   "author": "Daniel de Witte",
   "license": "MIT",
   "dependencies": {
     "@ethersproject/hdnode": "^5.7.0",
-    "randombytes": "^2.1.0"
+    "randombytes": "^2.1.0",
+    "single-line-log": "^1.1.2"
   },
   "devDependencies": {
-    "@types/randombytes": "^2.0.0",
     "@types/node": "^20.3.3",
+    "@types/randombytes": "^2.0.0",
+    "@types/single-line-log": "^1.1.0",
     "typescript": "^5.1.6"
   }
 }

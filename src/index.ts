@@ -3,8 +3,31 @@ import fs from "fs";
 import cluster from "cluster";
 import randomBytes from "randombytes";
 import { HDNode, entropyToMnemonic } from "@ethersproject/hdnode";
+import { stdout as lg } from "single-line-log";
 
-const patterns = ["0x88888888"];
+let iterations = 0;
+let intervalM = 0;
+let intervalHD = 0;
+let intervalMatch = 0;
+let startT;
+let mnemonicT = 0;
+let hdT = 0;
+let matchT = 0;
+
+const patterns = [
+  "0x00000000",
+  "0x11111111",
+  "0x22222222",
+  "0x33333333",
+  "0x44444444",
+  "0x55555555",
+  "0x66666666",
+  "0x77777777",
+  "0x88888888",
+  "0x99999999",
+];
+
+// const patterns = ["0x00000000"];
 
 const numCPUs = os.cpus().length;
 const numProcesses = Math.max(1, numCPUs - 1);
@@ -12,7 +35,7 @@ const numProcesses = Math.max(1, numCPUs - 1);
 let startTime = new Date().getTime();
 
 if (cluster.isPrimary) {
-  console.log("Master process started with pid", process.pid);
+  console.log("Primary process started with pid", process.pid);
 
   for (let i = 0; i < numProcesses; i++) {
     const mineWorker = cluster.fork({ alias: "Miner " + i });
@@ -44,10 +67,21 @@ if (cluster.isPrimary) {
   let mnemonic = "";
   let privateKey = "";
   let hdnode: HDNode;
+  const starttT = new Date().getTime();
 
   while (true) {
+    startT = new Date().getTime();
+
     mnemonic = entropyToMnemonic(randomBytes(32));
+
+    intervalM = new Date().getTime();
+    mnemonicT += intervalM - startT;
+
     hdnode = HDNode.fromMnemonic(mnemonic).derivePath("m/44'/60'/0'/0/0");
+
+    intervalHD = new Date().getTime();
+    hdT += intervalHD - intervalM;
+
     privateKey = hdnode.privateKey;
 
     patterns.forEach((search) => {
@@ -61,5 +95,15 @@ if (cluster.isPrimary) {
         }
       }
     });
+    matchT += new Date().getTime() - intervalHD;
+    iterations += 1;
+
+    if (process.env.alias === "Miner 1") {
+      lg(
+        `Count: ${iterations}, Total: ${
+          new Date().getTime() - starttT
+        }, Mnemonic: ${mnemonicT}, hd: ${hdT}, match: ${matchT}`
+      );
+    }
   }
 }
