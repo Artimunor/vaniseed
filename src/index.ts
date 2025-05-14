@@ -8,7 +8,7 @@ import { keccak256 } from "@ethersproject/keccak256";
 import { HDNode, entropyToMnemonic } from "@ethersproject/hdnode";
 
 const patterns = [
-  "0x00000000",
+  "0x00000",
   "0x11111111",
   "0x22222222",
   "0x33333333",
@@ -20,7 +20,7 @@ const patterns = [
   "0x99999999",
   "0xaaaaaaaa",
   "0xbbbbbbbb",
-  "0xcccccccc",
+  "0xcccccc",
   "0xdddddddd",
   "0xeeeeeeee",
   "0xffffffff",
@@ -28,7 +28,6 @@ const patterns = [
 const numCPUs = os.cpus().length;
 const numProcesses = Math.max(1, numCPUs - 1);
 let startTime = new Date().getTime();
-let contract: string;
 
 export function predictCreate(deployer: string): string {
   const rlp = rlpEncode([getAddress(deployer), "0x"]);
@@ -71,6 +70,7 @@ if (cluster.isPrimary) {
   console.log(
     `${process.env.alias} started looking for patterns: [${patterns}]`
   );
+  let contract = "";
   let mnemonic = "";
   let hdnode: HDNode;
 
