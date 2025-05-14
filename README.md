@@ -13,7 +13,7 @@ This allows the wallet that results in the vanity contract address to be used wi
 
 ## Usage
 
-- Define the patterns you want to match
+- Define the patterns you want to match in `src/index.ts`
 - Run the program
 - Store the output from the `contracts.txt` file in a safe place
 - Safe-delete the `contracts.txt` file using `delete.sh` or `rm -P ./contracts.txt`
