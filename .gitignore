@@ -64,4 +64,5 @@ typings/
 # Build directory
 build/
 
-wallets.txt
+yarn.lock
+.DS_store
