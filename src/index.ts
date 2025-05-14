@@ -2,17 +2,10 @@ import os from "os";
 import fs from "fs";
 import cluster from "cluster";
 import randomBytes from "randombytes";
+import { getAddress } from "@ethersproject/address";
+import { encode as rlpEncode } from "@ethersproject/rlp";
+import { keccak256 } from "@ethersproject/keccak256";
 import { HDNode, entropyToMnemonic } from "@ethersproject/hdnode";
-import { stdout as lg } from "single-line-log";
-
-let iterations = 0;
-let intervalM = 0;
-let intervalHD = 0;
-let intervalMatch = 0;
-let startT;
-let mnemonicT = 0;
-let hdT = 0;
-let matchT = 0;
 
 const patterns = [
   "0x00000000",
@@ -25,33 +18,48 @@ const patterns = [
   "0x77777777",
   "0x88888888",
   "0x99999999",
+  "0xaaaaaaaa",
+  "0xbbbbbbbb",
+  "0xcccccccc",
+  "0xdddddddd",
+  "0xeeeeeeee",
+  "0xffffffff",
 ];
-
-// const patterns = ["0x00000000"];
-
 const numCPUs = os.cpus().length;
 const numProcesses = Math.max(1, numCPUs - 1);
-
 let startTime = new Date().getTime();
+let contract: string;
+
+export function predictCreate(deployer: string): string {
+  const rlp = rlpEncode([getAddress(deployer), "0x"]);
+  return getAddress("0x" + keccak256(rlp).slice(26)); // drop first 12 bytes
+}
 
 if (cluster.isPrimary) {
   console.log("Primary process started with pid", process.pid);
 
   for (let i = 0; i < numProcesses; i++) {
     const mineWorker = cluster.fork({ alias: "Miner " + i });
-
     mineWorker.on("message", (message) => {
-      const { address, privatekey, mnemonic } = message;
+      const { address, contract, privatekey, mnemonic } = message;
+      const now = new Date().getTime();
       console.log(
         `Found address ${address} in ${Math.floor(
-          (new Date().getTime() - startTime) / 1000
+          (now - startTime) / 1000
         )} seconds`
       );
-      startTime = new Date().getTime();
+      startTime = now;
       try {
         fs.writeFileSync(
-          "wallets.txt",
-          address + "\n" + privatekey + "\n" + mnemonic + "\n\n",
+          "contracts.txt",
+          address +
+            "\n" +
+            contract +
+            "\n" +
+            privatekey +
+            "\n" +
+            mnemonic +
+            "\n\n",
           { flag: "a+" }
         );
       } catch (err) {
@@ -63,47 +71,22 @@ if (cluster.isPrimary) {
   console.log(
     `${process.env.alias} started looking for patterns: [${patterns}]`
   );
-
   let mnemonic = "";
-  let privateKey = "";
   let hdnode: HDNode;
-  const starttT = new Date().getTime();
 
   while (true) {
-    startT = new Date().getTime();
-
     mnemonic = entropyToMnemonic(randomBytes(32));
-
-    intervalM = new Date().getTime();
-    mnemonicT += intervalM - startT;
-
     hdnode = HDNode.fromMnemonic(mnemonic).derivePath("m/44'/60'/0'/0/0");
-
-    intervalHD = new Date().getTime();
-    hdT += intervalHD - intervalM;
-
-    privateKey = hdnode.privateKey;
-
     patterns.forEach((search) => {
-      if (hdnode.address.indexOf(search) === 0) {
-        if (process) {
-          (<any>process).send({
-            address: hdnode.address,
-            privatekey: privateKey,
-            mnemonic: mnemonic,
-          });
-        }
+      contract = predictCreate(hdnode.address);
+      if (contract.indexOf(search) === 0 && process) {
+        (<any>process).send({
+          address: hdnode.address,
+          contract: contract,
+          privatekey: hdnode.privateKey,
+          mnemonic: mnemonic,
+        });
       }
     });
-    matchT += new Date().getTime() - intervalHD;
-    iterations += 1;
-
-    if (process.env.alias === "Miner 1") {
-      lg(
-        `Count: ${iterations}, Total: ${
-          new Date().getTime() - starttT
-        }, Mnemonic: ${mnemonicT}, hd: ${hdT}, match: ${matchT}`
-      );
-    }
   }
 }

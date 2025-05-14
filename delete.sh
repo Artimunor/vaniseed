@@ -1,2 +1,2 @@
 #!/bin/sh
-rm -P ./wallets.txt
+rm -P ./contracts.txt
