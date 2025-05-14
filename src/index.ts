@@ -9,21 +9,21 @@ import { HDNode, entropyToMnemonic } from "@ethersproject/hdnode";
 
 const patterns = [
   "0x00000",
-  "0x11111111",
-  "0x22222222",
-  "0x33333333",
-  "0x44444444",
-  "0x55555555",
-  "0x66666666",
-  "0x77777777",
+  "0x111111",
+  "0x222222",
+  "0x333333",
+  "0x444444",
+  "0x555555",
+  "0x666666",
+  "0x7777777",
   "0x88888888",
-  "0x99999999",
-  "0xaaaaaaaa",
-  "0xbbbbbbbb",
+  "0x999999",
+  "0xaaaaaa",
+  "0xbbbbbb",
   "0xcccccc",
-  "0xdddddddd",
-  "0xeeeeeeee",
-  "0xffffffff",
+  "0xdddddd",
+  "0xeeeeee",
+  "0xffffff",
 ];
 const numCPUs = os.cpus().length;
 const numProcesses = Math.max(1, numCPUs - 1);
@@ -35,7 +35,7 @@ export function predictCreate(deployer: string): string {
 }
 
 if (cluster.isPrimary) {
-  console.log("Primary process started with pid", process.pid);
+  console.log("Miner coordinator started with pid", process.pid);
 
   for (let i = 0; i < numProcesses; i++) {
     const mineWorker = cluster.fork({ alias: "Miner " + i });
