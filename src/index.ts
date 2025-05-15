@@ -8,7 +8,7 @@ import { keccak256 } from "@ethersproject/keccak256";
 import { HDNode, entropyToMnemonic } from "@ethersproject/hdnode";
 
 const patterns = [
-  "0x00000",
+  "0x000000",
   "0x111111",
   "0x222222",
   "0x333333",
@@ -43,6 +43,7 @@ if (cluster.isPrimary) {
       const { address, contract, privatekey, mnemonic } = message;
       const now = new Date().getTime();
       console.log(
+        new Date(),
         `Found address ${address} in ${Math.floor(
           (now - startTime) / 1000
         )} seconds`
@@ -79,7 +80,7 @@ if (cluster.isPrimary) {
     hdnode = HDNode.fromMnemonic(mnemonic).derivePath("m/44'/60'/0'/0/0");
     patterns.forEach((search) => {
       contract = predictCreate(hdnode.address);
-      if (contract.indexOf(search) === 0 && process) {
+      if (contract.toLowerCase().indexOf(search) === 0 && process) {
         (<any>process).send({
           address: hdnode.address,
           contract: contract,
