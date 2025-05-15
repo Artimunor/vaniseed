@@ -44,7 +44,7 @@ if (cluster.isPrimary) {
       const now = new Date().getTime();
       console.log(
         new Date(),
-        `Found address ${address} in ${Math.floor(
+        `Found contract ${contract} in ${Math.floor(
           (now - startTime) / 1000
         )} seconds`
       );
